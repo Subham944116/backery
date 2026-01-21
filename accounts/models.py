@@ -1,4 +1,4 @@
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser,User
 from django.db import models
 import random
 from datetime import timedelta
@@ -25,3 +25,15 @@ class OTP(models.Model):
 
     def is_expired(self):
         return timezone.now() > self.created_at + timedelta(minutes=5)
+    
+
+class UserProfile(models.Model):
+    full_name = models.CharField(max_length=100)
+    email = models.EmailField(unique=True)
+    address = models.TextField()
+    pincode = models.CharField(max_length=6)
+    city = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.full_name
+

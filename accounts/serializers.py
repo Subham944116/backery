@@ -1,20 +1,46 @@
 from rest_framework import serializers
-from .models import *
+from .models import User, UserProfile
+
+
+class RegisterSerializer(serializers.Serializer):
+    mobile = serializers.CharField(max_length=15)
+    password = serializers.CharField(write_only=True)
+    full_name = serializers.CharField()
+    email = serializers.EmailField()
+    address = serializers.CharField()
+    pincode = serializers.CharField(max_length=6)
+    city = serializers.CharField()
+
+    def create(self, validated_data):
+        user = User.objects.create_user(
+            mobile=validated_data['mobile'],
+            username=validated_data['mobile'],
+            password=validated_data['password'],
+            email=validated_data['email']
+        )
+
+        UserProfile.objects.create(
+            user=user,
+            full_name=validated_data['full_name'],
+            email=validated_data['email'],
+            address=validated_data['address'],
+            pincode=validated_data['pincode'],
+            city=validated_data['city']
+        )
+        return user
+
 
 class SendOTPSerializer(serializers.Serializer):
     mobile = serializers.CharField(max_length=15)
 
+
 class VerifyOTPSerializer(serializers.Serializer):
     mobile = serializers.CharField(max_length=15)
     otp = serializers.CharField(max_length=6)
-class RegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
 
-    class Meta:
-        model = User
-        fields = ['username', 'password', 'email']
 
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = '__all__'
+        read_only_fields = ['user']

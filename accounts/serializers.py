@@ -33,6 +33,8 @@ class VerifyOTPSerializer(serializers.Serializer):
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
+    profile_image = serializers.ImageField(required=False)
+
     class Meta:
         model = UserProfile
         fields = '__all__'

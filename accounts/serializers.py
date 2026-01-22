@@ -39,3 +39,12 @@ class UserProfileSerializer(serializers.ModelSerializer):
         model = UserProfile
         fields = '__all__'
         read_only_fields = ['user']
+
+    def get_profile_image(self, obj):
+        request = self.context.get('request')
+        if obj.profile_image:
+            if request:
+                return request.build_absolute_uri(obj.profile_image.url)
+            return obj.profile_image.url
+        return None
+    

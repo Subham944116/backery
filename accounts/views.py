@@ -123,7 +123,7 @@ class VerifyOTPView(APIView):
 class UserProfileDetailView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
-    parser_classes = [MultiPartParser, FormParser]  # 👈 REQUIRED
+    parser_classes = [MultiPartParser, FormParser]
 
     def get(self, request):
         try:
@@ -131,7 +131,10 @@ class UserProfileDetailView(APIView):
         except UserProfile.DoesNotExist:
             return Response({"error": "Profile not found"}, status=404)
 
-        serializer = UserProfileSerializer(profile)
+        serializer = UserProfileSerializer(
+            profile,
+            context={'request': request}
+        )
         return Response(serializer.data)
 
     def patch(self, request):
@@ -143,7 +146,8 @@ class UserProfileDetailView(APIView):
         serializer = UserProfileSerializer(
             profile,
             data=request.data,
-            partial=True
+            partial=True,
+            context={'request': request}
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()

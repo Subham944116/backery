@@ -139,3 +139,11 @@ SIMPLE_JWT = {
 }
 
 AUTH_USER_MODEL = 'accounts.User'
+
+
+    
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "unphenomenal-craig-downwardly.ngrok-free.dev",
+]

@@ -4,7 +4,6 @@ from .models import User, UserProfile
 
 class RegisterSerializer(serializers.Serializer):
     mobile = serializers.CharField(max_length=15)
-    password = serializers.CharField(write_only=True)
     full_name = serializers.CharField()
     email = serializers.EmailField()
     address = serializers.CharField()
@@ -12,14 +11,9 @@ class RegisterSerializer(serializers.Serializer):
     city = serializers.CharField()
 
     def create(self, validated_data):
-        user = User.objects.create_user(
-            mobile=validated_data['mobile'],
-            username=validated_data['mobile'],
-            password=validated_data['password'],
-            email=validated_data['email']
-        )
+        user = User.objects.get(mobile=validated_data['mobile'])
 
-        UserProfile.objects.create(
+        profile = UserProfile.objects.create(
             user=user,
             full_name=validated_data['full_name'],
             email=validated_data['email'],
@@ -27,7 +21,8 @@ class RegisterSerializer(serializers.Serializer):
             pincode=validated_data['pincode'],
             city=validated_data['city']
         )
-        return user
+        return profile
+
 
 
 class SendOTPSerializer(serializers.Serializer):

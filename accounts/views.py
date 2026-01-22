@@ -1,9 +1,11 @@
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import AllowAny
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.authentication import TokenAuthentication
 
 from .models import User, OTP, UserProfile
 from .serializers import (
@@ -115,19 +117,27 @@ class VerifyOTPView(APIView):
 
 
 
+
 class UserProfileDetailView(APIView):
+    authentication_classes = [JWTAuthentication]  # <-- use JWT
     permission_classes = [IsAuthenticated]
 
-    def get(self, request,id):
-        profile = UserProfile.objects.get(id=id,user=request.user)
+    def get(self, request, *args, **kwargs):
+        try:
+            profile = UserProfile.objects.get(user=request.user)
+        except UserProfile.DoesNotExist:
+            return Response({"error": "Profile not found"}, status=404)
+
         serializer = UserProfileSerializer(profile)
         return Response(serializer.data)
 
-    def patch(self, request):
-        profile = UserProfile.objects.get(user=request.user)
-        serializer = UserProfileSerializer(
-            profile, data=request.data, partial=True
-        )
+    def patch(self, request, *args, **kwargs):
+        try:
+            profile = UserProfile.objects.get(user=request.user)
+        except UserProfile.DoesNotExist:
+            return Response({"error": "Profile not found"}, status=404)
+
+        serializer = UserProfileSerializer(profile, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)

@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import *
+<<<<<<< HEAD
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -21,6 +22,8 @@ class RegisterSerializer(serializers.ModelSerializer):
         UserProfile.objects.get_or_create(user=user)
 
         return user
+=======
+>>>>>>> 332d175f187f807d5056d7267e6037c8a9f5441e
 
 
 class SendOTPSerializer(serializers.Serializer):
@@ -40,8 +43,10 @@ class UserProfileSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ['user']
 
-    def get_profile_image(self, obj):
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
         request = self.context.get('request')
+<<<<<<< HEAD
         if obj.profile_image:
             if request:
                 return request.build_absolute_uri(obj.profile_image.url)
@@ -49,3 +54,10 @@ class UserProfileSerializer(serializers.ModelSerializer):
         return None
 
 
+=======
+        if instance.profile_image and request:
+            data['profile_image'] = request.build_absolute_uri(
+                instance.profile_image.url
+            )
+        return data
+>>>>>>> 332d175f187f807d5056d7267e6037c8a9f5441e

@@ -40,7 +40,8 @@ INSTALLED_APPS = [
     'accounts',
     'products',
     'rest_framework',
-    'rest_framework.authtoken'
+    'rest_framework.authtoken',
+    "corsheaders",
 ]
 
 MIDDLEWARE = [
@@ -51,6 +52,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+     "corsheaders.middleware.CorsMiddleware", 
 ]
 
 ROOT_URLCONF = 'beckery.urls'
@@ -160,3 +162,7 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 
+<<<<<<< HEAD
+=======
+CORS_ALLOW_ALL_ORIGINS = True
+>>>>>>> 332d175f187f807d5056d7267e6037c8a9f5441e

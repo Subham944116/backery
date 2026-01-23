@@ -1,40 +1,17 @@
-from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.parsers import MultiPartParser, FormParser
-
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.parsers import MultiPartParser, FormParser,JSONParser
 
 from .models import User, OTP, UserProfile
-from .serializers import (
-    RegisterSerializer,
-    SendOTPSerializer,
-    VerifyOTPSerializer,
-    UserProfileSerializer
-) 
+from .serializers import SendOTPSerializer, VerifyOTPSerializer, UserProfileSerializer
 
 
-class RegisterView(APIView):
-    permission_classes = [AllowAny]
-
-    def post(self, request):
-        serializer = RegisterSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-
-        return Response(
-            {"message": "Registration completed"},
-            status=status.HTTP_201_CREATED
-        )
-
-
-
-
+ 
 class SendOTPView(APIView):
     permission_classes = [AllowAny]
 
@@ -42,37 +19,38 @@ class SendOTPView(APIView):
         serializer = SendOTPSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        mobile = serializer.validated_data['mobile']
+        mobile = serializer.validated_data["mobile"]
 
-        user = User.objects.filter(mobile=mobile).first()
+        # ✅ CREATE USER IF NOT EXISTS
+        user, created = User.objects.get_or_create(
+            mobile=mobile,
+            defaults={"username": mobile}
+        )
 
-        # 🔹 If new mobile → create user
-        if not user:
-            user = User.objects.create_user(
-                mobile=mobile,
-                username=mobile,
-                password=None
-            )
+        # ✅ CREATE PROFILE IF NOT EXISTS (MOBILE ONLY)
+        UserProfile.objects.get_or_create(
+            user=user,
+            defaults={"mobile": mobile}
+        )
 
-        otp = OTP.objects.create(user=user)
-
-        is_registered = UserProfile.objects.filter(user=user).exists()
+        # ✅ CREATE OTP
+        otp = OTP.objects.create(
+            user=user,
+            mobile=mobile
+        )
 
         return Response(
             {
                 "message": "OTP sent successfully",
                 "mobile": mobile,
-                "otp": otp.code,             # ⚠ DEV ONLY
-                "is_registered": is_registered
+                "otp": otp.code,  # ⚠ DEV ONLY
+                "new_user": created
             },
             status=status.HTTP_200_OK
         )
 
 
-
-
-
-
+ 
 class VerifyOTPView(APIView):
     permission_classes = [AllowAny]
 
@@ -80,79 +58,82 @@ class VerifyOTPView(APIView):
         serializer = VerifyOTPSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        mobile = serializer.validated_data['mobile']
-        otp_code = serializer.validated_data['otp']
-
-        user = User.objects.filter(mobile=mobile).first()
-        if not user:
-            return Response({"error": "User not found"}, status=404)
+        mobile = serializer.validated_data["mobile"]
+        otp_code = serializer.validated_data["otp"]
 
         otp = OTP.objects.filter(
-            user=user,
+            mobile=mobile,
             code=otp_code,
             is_verified=False
         ).last()
 
         if not otp:
-            return Response({"error": "Invalid OTP"}, status=400)
+            return Response(
+                {"error": "Invalid OTP"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         if otp.is_expired():
-            return Response({"error": "OTP expired"}, status=400)
+            return Response(
+                {"error": "OTP expired"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
+        # Mark OTP as verified
         otp.is_verified = True
         otp.save()
 
+        user = otp.user
         refresh = RefreshToken.for_user(user)
 
-        is_registered = UserProfile.objects.filter(user=user).exists()
+        profile = UserProfile.objects.get(user=user)
 
-        return Response(
-            {
-                "message": "OTP verified successfully",
-                "mobile": mobile,
-                "is_registered": is_registered,
-                "access": str(refresh.access_token),
-                "refresh": str(refresh)
-            },
-            status=status.HTTP_200_OK
+        # Check if profile is complete (mobile, full_name, email)
+        profile_completed = bool(
+            profile.mobile and profile.full_name and profile.email
         )
 
+        # Build response
+        response_data = {
+            "message": "OTP verified successfully",
+            "token": str(refresh.access_token),
+            "profile_completed": profile_completed
+        }
+
+        # ✅ Include fields only if profile is NOT complete
+        if not profile_completed:
+            response_data.update({
+                "full_name": profile.full_name or "required for profile completion ",
+                "email": profile.email or "rrequired for profile completion"
+            })
+
+        return Response(response_data, status=status.HTTP_200_OK)
 
 
 
-
-class UserProfileDetailView(APIView):
+ 
+class UserProfileView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
-    parser_classes = [MultiPartParser, FormParser]
+    parser_classes = [JSONParser,MultiPartParser, FormParser]
 
     def get(self, request):
-        try:
-            profile = UserProfile.objects.get(user=request.user)
-        except UserProfile.DoesNotExist:
-            return Response({"error": "Profile not found"}, status=404)
-
+        profile = UserProfile.objects.get(user=request.user)
         serializer = UserProfileSerializer(
             profile,
-            context={'request': request}
+            context={"request": request}
         )
         return Response(serializer.data)
 
     def patch(self, request):
-        try:
-            profile = UserProfile.objects.get(user=request.user)
-        except UserProfile.DoesNotExist:
-            return Response({"error": "Profile not found"}, status=404)
+        profile = UserProfile.objects.get(user=request.user)
 
         serializer = UserProfileSerializer(
             profile,
             data=request.data,
             partial=True,
-            context={'request': request}
+            context={"request": request}
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
-
-
-

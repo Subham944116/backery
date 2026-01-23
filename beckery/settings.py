@@ -161,3 +161,9 @@ ALLOWED_HOSTS = [
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",  
+    "http://localhost:3001",  
+]
+

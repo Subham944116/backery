@@ -57,15 +57,10 @@ class Product(models.Model):
     ]
  
     name = models.CharField(max_length=200)
-
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
-
     flavour = models.CharField(max_length=30, choices=FLAVOUR_CHOICES)
-
     weight = models.FloatField(choices=WEIGHT_CHOICES)
- 
     price = models.PositiveIntegerField()
-
     description = models.TextField(blank=True)
     created_at = models.DateTimeField(
     default=timezone.now
@@ -73,8 +68,8 @@ class Product(models.Model):
     is_vegetarian = models.BooleanField(default=False)
 
     # image = models.ImageField(upload_to='products/', blank=True, null=True)
- 
     # dietary options
+    
     diet_type = models.CharField(
         max_length=20,
         choices=DIET_CHOICES,

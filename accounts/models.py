@@ -15,7 +15,18 @@ class User(AbstractUser):
 
 
 class OTP(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE,null=True,blank=True)
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
+    mobile = models.CharField(
+    max_length=15,
+    null=True,
+    blank=True
+)
+
     code = models.CharField(max_length=6)
     created_at = models.DateTimeField(auto_now_add=True)
     is_verified = models.BooleanField(default=False)
@@ -30,24 +41,11 @@ class OTP(models.Model):
 
 
 class UserProfile(models.Model):
-    user = models.OneToOneField(
-        User,
-        on_delete=models.CASCADE,
-        null=True,     # 👈 TEMPORARY
-        blank=True
-    )
-    full_name = models.CharField(max_length=100)
-    email = models.EmailField(unique=True)
-    address = models.TextField()
-    pincode = models.CharField(max_length=6)
-    city = models.CharField(max_length=50)
-
-    profile_image = models.ImageField(
-        upload_to="profile_images/",
-        null=True,
-        blank=True
-    )
-
-    def __str__(self):
-        return self.full_name
-
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
+    mobile = models.CharField(max_length=15, null=True, blank=True)
+    full_name = models.CharField(max_length=100, blank=True)
+    email = models.EmailField(blank=True)
+    address = models.TextField(blank=True)
+    pincode = models.CharField(max_length=6, blank=True)
+    city = models.CharField(max_length=50, blank=True)
+    profile_image = models.ImageField(upload_to="profile_images/", null=True, blank=True)

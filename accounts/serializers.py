@@ -1,26 +1,5 @@
 from rest_framework import serializers
-from .models import User, UserProfile
-
-
-class RegisterSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['mobile', 'password', 'email', 'username']
-        extra_kwargs = {'password': {'write_only': True}}
-
-    def create(self, validated_data):
-        # 1. Create the user first
-        user = User.objects.create_user(
-            mobile=validated_data['mobile'],
-            password=validated_data['password'],
-            email=validated_data.get('email', ''),
-            username=validated_data.get('username', '')
-        )
-
-        # 2. Create profile only if it doesn't exist
-        UserProfile.objects.get_or_create(user=user)
-
-        return user
+from .models import *
 
 
 class SendOTPSerializer(serializers.Serializer):
@@ -40,11 +19,11 @@ class UserProfileSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ['user']
 
-    def get_profile_image(self, obj):
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
         request = self.context.get('request')
-        if obj.profile_image:
-            if request:
-                return request.build_absolute_uri(obj.profile_image.url)
-            return obj.profile_image.url
-        return None
-    
+        if instance.profile_image and request:
+            data['profile_image'] = request.build_absolute_uri(
+                instance.profile_image.url
+            )
+        return data

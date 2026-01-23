@@ -103,8 +103,8 @@ class VerifyOTPView(APIView):
         # ✅ Include fields only if profile is NOT complete
         if not profile_completed:
             response_data.update({
-                "full_name": profile.full_name or "required for profile completion ",
-                "email": profile.email or "rrequired for profile completion"
+                "full_name":  "required for profile completion ",
+                "email":  "rrequired for profile completion"
             })
 
         return Response(response_data, status=status.HTTP_200_OK)

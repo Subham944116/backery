@@ -162,7 +162,8 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 
-<<<<<<< HEAD
-=======
-CORS_ALLOW_ALL_ORIGINS = True
->>>>>>> 332d175f187f807d5056d7267e6037c8a9f5441e
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",  
+    "http://localhost:3001",  
+]
+

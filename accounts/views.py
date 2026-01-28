@@ -3,9 +3,10 @@ from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import status
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.authentication import JWTAuthentication
+# from rest_framework_simplejwt.tokens import RefreshToken
+# from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.parsers import MultiPartParser, FormParser,JSONParser
+from rest_framework.authtoken.models import Token
 
 from .models import User, OTP, UserProfile
 from .serializers import SendOTPSerializer, VerifyOTPSerializer, UserProfileSerializer
@@ -68,52 +69,43 @@ class VerifyOTPView(APIView):
         ).last()
 
         if not otp:
-            return Response(
-                {"error": "Invalid OTP"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"error": "Invalid OTP"}, status=400)
 
         if otp.is_expired():
-            return Response(
-                {"error": "OTP expired"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"error": "OTP expired"}, status=400)
 
-        # Mark OTP as verified
         otp.is_verified = True
         otp.save()
 
         user = otp.user
-        refresh = RefreshToken.for_user(user)
+
+        # ✅ DRF TOKEN (NOT JWT)
+        token, created = Token.objects.get_or_create(user=user)
 
         profile = UserProfile.objects.get(user=user)
 
-        # Check if profile is complete (mobile, full_name, email)
         profile_completed = bool(
             profile.mobile and profile.full_name and profile.email
         )
 
-        # Build response
         response_data = {
             "message": "OTP verified successfully",
-            "token": str(refresh.access_token),
+            "token": token.key,
             "profile_completed": profile_completed
         }
 
-        # ✅ Include fields only if profile is NOT complete
         if not profile_completed:
             response_data.update({
-                "full_name":  "required for profile completion ",
-                "email":  "rrequired for profile completion"
+                "full_name": "required for profile completion",
+                "email": "required for profile completion"
             })
 
-        return Response(response_data, status=status.HTTP_200_OK)
-
+        return Response(response_data, status=200)
 
 
  
 class UserProfileView(APIView):
-    authentication_classes = [JWTAuthentication]
+    # authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
     parser_classes = [JSONParser,MultiPartParser, FormParser]
 
@@ -123,7 +115,7 @@ class UserProfileView(APIView):
             profile,
             context={"request": request}
         )
-        return Response(serializer.data)
+        return Response(serializer.data,status=status.HTTP_200_OK)
 
     def patch(self, request):
         profile = UserProfile.objects.get(user=request.user)
@@ -136,4 +128,4 @@ class UserProfileView(APIView):
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(serializer.data)
+        return Response(serializer.data,status=status.HTTP_201_CREATED)

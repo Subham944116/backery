@@ -37,6 +37,8 @@ INSTALLED_APPS = [
     'accounts',
     'contact',
     'custom_cake',
+    'home',
+    'address',
     'django_filters',
 ]
 

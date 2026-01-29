@@ -38,7 +38,7 @@ class Product(models.Model):
     price = models.DecimalField(max_digits=8, decimal_places=2)
     treat_type = models.CharField(max_length=20, choices=TREAT_CHOICES)
     rating = models.FloatField(default=0)
-    is_featured = models.BooleanField(default=False)  # ⭐ FOR HOME PAGE
+    is_featured = models.BooleanField(default=False)  #  FOR HOME PAGE
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

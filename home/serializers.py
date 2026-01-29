@@ -10,8 +10,14 @@ class ProductImageSerializer(serializers.ModelSerializer):
         fields = ['image']
 
     def get_image(self, obj):
+        if not obj.image:
+            return None
+
         request = self.context.get('request')
-        return request.build_absolute_uri(obj.image.url)
+        if request:
+            return request.build_absolute_uri(obj.image.url)
+
+        return obj.image.url
 
 
 class HomeProductSerializer(serializers.ModelSerializer):
@@ -31,10 +37,15 @@ class HomeProductSerializer(serializers.ModelSerializer):
 
     def get_main_image(self, obj):
         image = obj.images.filter(is_main=True).first()
-        if image:
-            request = self.context.get('request')
+        if not image:
+            return None
+
+        request = self.context.get('request')
+        if request:
             return request.build_absolute_uri(image.image.url)
-        return None
+
+        return image.image.url
+
 
 
 class HomeCategorySerializer(serializers.ModelSerializer):
@@ -51,8 +62,15 @@ class HomeCategorySerializer(serializers.ModelSerializer):
         ]
 
     def get_icon(self, obj):
+        if not obj.icon:
+            return None
+
         request = self.context.get('request')
-        return request.build_absolute_uri(obj.icon.url)
+        if request:
+            return request.build_absolute_uri(obj.icon.url)
+
+        return obj.icon.url
+
 
 
 class HomeHeroSerializer(serializers.ModelSerializer):
@@ -70,8 +88,15 @@ class HomeHeroSerializer(serializers.ModelSerializer):
         ]
 
     def get_hero_image(self, obj):
+        if not obj.hero_image:
+            return None
+
         request = self.context.get('request')
-        return request.build_absolute_uri(obj.hero_image.url)
+        if request:
+            return request.build_absolute_uri(obj.hero_image.url)
+
+        return obj.hero_image.url
+
 
 class HomePageSerializer(serializers.Serializer):
     hero = HomeHeroSerializer()

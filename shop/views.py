@@ -49,9 +49,9 @@ class ProductListView(ListAPIView):
         # ✅ Sorting
         if sort == 'price_low_to_high':
             qs = qs.order_by('price')
-        elif sort == 'price_high_to_low':
-            qs = qs.order_by('-price')
+        elif sort == 'price_high_to_low':            qs = qs.order_by('-price')
         elif sort == 'popularity':
+            
             qs = qs.order_by('-popularity')
         elif sort == 'newest':
             qs = qs.order_by('-created_at')

@@ -1,15 +1,12 @@
-from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import status
-# from rest_framework_simplejwt.tokens import RefreshToken
-# from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.parsers import MultiPartParser, FormParser,JSONParser
-from rest_framework.authtoken.models import Token
-
 from .models import User, OTP, UserProfile
 from .serializers import SendOTPSerializer, VerifyOTPSerializer, UserProfileSerializer
+from rest_framework.views import APIView
+from rest_framework.authtoken.models import Token
 
 
  
@@ -52,6 +49,7 @@ class SendOTPView(APIView):
 
 
  
+
 class VerifyOTPView(APIView):
     permission_classes = [AllowAny]
 
@@ -79,7 +77,7 @@ class VerifyOTPView(APIView):
 
         user = otp.user
 
-        # ✅ DRF TOKEN (NOT JWT)
+        # ✅ DRF TOKEN
         token, created = Token.objects.get_or_create(user=user)
 
         profile = UserProfile.objects.get(user=user)
@@ -90,7 +88,7 @@ class VerifyOTPView(APIView):
 
         response_data = {
             "message": "OTP verified successfully",
-            "token": token.key,
+            "token": token.key,  # ✅ KEEP JSON TOKEN
             "profile_completed": profile_completed
         }
 
@@ -100,7 +98,20 @@ class VerifyOTPView(APIView):
                 "email": "required for profile completion"
             })
 
-        return Response(response_data, status=200)
+        response = Response(response_data, status=200)
+
+        # 🍪 ADD COOKIE (without removing JSON)
+        response.set_cookie(
+            key="auth_token",
+            value=token.key,
+            httponly=True,        # safer
+            secure=False,         # True in production (HTTPS)
+            samesite="Lax",       # "None" if cross-domain
+            max_age=60 * 60 * 24 * 7
+        )
+
+        return response
+
 
 
  

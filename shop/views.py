@@ -59,6 +59,27 @@ class ProductListView(ListAPIView):
         return qs
 
 
+ 
+
+class ProductDetailView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, pk):
+        try:
+            product = Product.objects.get(id=pk)
+        except Product.DoesNotExist:
+            return Response(
+                {"error": "Product not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = ProductDetailSerializer(
+            product,
+            context={'request': request}
+        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
 # ADD TO CART
 class AddToCartView(APIView):
     authentication_classes = [TokenAuthentication]  # <-- token auth

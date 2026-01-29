@@ -21,7 +21,33 @@ class CakeCreateView(APIView):
             serializer.save(user=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def get(self, request):
+        flavors = [
+            {"value": key, "label": label}
+            for key, label in CakeOrder.FLAVOR_CHOICES
+        ]
 
+        shapes = [
+            {"value": key, "label": label}
+            for key, label in CakeOrder.SHAPE_CHOICES
+        ]
+
+        colors = [
+            {"value": key, "label": label}
+            for key, label in CakeOrder.COLOR_CHOICES
+        ]
+
+        weights = [
+            {"value": weight, "price": price}
+            for weight, price in CakeOrder.PRICE_MAP.items()
+        ]
+
+        return Response({
+            "flavors": flavors,
+            "shapes": shapes,
+            "colors": colors,
+            "weights": weights
+        }, status=status.HTTP_200_OK)
 
 
 class AddCustomCakeToCartView(APIView):

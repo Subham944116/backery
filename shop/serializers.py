@@ -65,3 +65,50 @@ class CartSerializer(serializers.ModelSerializer):
         model = Cart
         fields = ['id', 'items']
 
+# serializers.py (ADD BELOW existing serializers)
+
+class ProductDetailSerializer(serializers.ModelSerializer):
+    images = serializers.SerializerMethodField()
+    available_weights = serializers.SerializerMethodField()
+    available_flavors = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Product
+        fields = [
+            'id',
+            'name',
+            'description',
+            'price',
+            'treat_type',
+            'flavor',
+            'weight',
+            'rating',
+            'images',
+            'available_weights',
+            'available_flavors',
+        ]
+
+    def get_images(self, obj):
+        request = self.context.get('request')
+        images = []
+
+        for img in obj.images.all():
+            if img.image and request:
+                images.append({
+                    "url": request.build_absolute_uri(img.image.url),
+                    "is_primary": img.is_primary
+                })
+
+        return images
+
+    def get_available_weights(self, obj):
+        # frontend buttons: 0.5kg, 1kg, 2kg
+        return ["0.5kg", "1kg", "2kg"]
+
+    def get_available_flavors(self, obj):
+        return [
+            {"label": "Chocolate", "value": "chocolate"},
+            {"label": "Vanilla", "value": "vanilla"},
+            {"label": "Strawberry", "value": "strawberry"},
+            {"label": "Butterscotch", "value": "butterscotch"},
+        ]

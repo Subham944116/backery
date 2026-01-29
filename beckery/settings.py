@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'home',
     'address',
     'django_filters',
+    'orderhistory',
 ]
 
 

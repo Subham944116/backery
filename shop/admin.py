@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Product, ProductImage
+from .models import Product, ProductImage,Cart,CartItem,CakeOrder
 
 
 class ProductImageInline(admin.TabularInline):
@@ -13,3 +13,6 @@ class ProductAdmin(admin.ModelAdmin):
     list_display = ('name', 'treat_type', 'flavor', 'price', 'rating', 'popularity')
     list_filter = ('treat_type', 'flavor')
     search_fields = ('name',)
+admin.site.register(CartItem)
+ 
+ 

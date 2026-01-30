@@ -90,3 +90,5 @@ class CartItem(models.Model):
             return self.custom_cake.total_price
         return 0
 
+
+

@@ -112,3 +112,6 @@ class ProductDetailSerializer(serializers.ModelSerializer):
             {"label": "Strawberry", "value": "strawberry"},
             {"label": "Butterscotch", "value": "butterscotch"},
         ]
+
+
+

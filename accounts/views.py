@@ -9,7 +9,7 @@ from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
 
 
- 
+
 class SendOTPView(APIView):
     permission_classes = [AllowAny]
 
@@ -19,19 +19,19 @@ class SendOTPView(APIView):
 
         mobile = serializer.validated_data["mobile"]
 
-        # ✅ CREATE USER IF NOT EXISTS
+        
         user, created = User.objects.get_or_create(
             mobile=mobile,
             defaults={"username": mobile}
         )
 
-        # ✅ CREATE PROFILE IF NOT EXISTS (MOBILE ONLY)
+       
         UserProfile.objects.get_or_create(
             user=user,
             defaults={"mobile": mobile}
         )
 
-        # ✅ CREATE OTP
+         
         otp = OTP.objects.create(
             user=user,
             mobile=mobile
@@ -41,7 +41,7 @@ class SendOTPView(APIView):
             {
                 "message": "OTP sent successfully",
                 "mobile": mobile,
-                "otp": otp.code,  # ⚠ DEV ONLY
+                "otp": otp.code,  
                 "new_user": created
             },
             status=status.HTTP_200_OK
@@ -77,7 +77,7 @@ class VerifyOTPView(APIView):
 
         user = otp.user
 
-        # ✅ DRF TOKEN
+    
         token, created = Token.objects.get_or_create(user=user)
 
         profile = UserProfile.objects.get(user=user)
@@ -88,7 +88,7 @@ class VerifyOTPView(APIView):
 
         response_data = {
             "message": "OTP verified successfully",
-            "token": token.key,  # ✅ KEEP JSON TOKEN
+            "token": token.key,   
             "profile_completed": profile_completed
         }
 
@@ -100,13 +100,14 @@ class VerifyOTPView(APIView):
 
         response = Response(response_data, status=200)
 
-        # 🍪 ADD COOKIE (without removing JSON)
+        """ADD COOKIE 
+        (without removing JSON)"""
         response.set_cookie(
             key="auth_token",
             value=token.key,
-            httponly=True,        # safer
-            secure=False,         # True in production (HTTPS)
-            samesite="Lax",       # "None" if cross-domain
+            httponly=True,         
+            secure=False,          
+            samesite="Lax",     
             max_age=60 * 60 * 24 * 7
         )
 
@@ -116,7 +117,7 @@ class VerifyOTPView(APIView):
 
  
 class UserProfileView(APIView):
-    # authentication_classes = [JWTAuthentication]
+    
     permission_classes = [IsAuthenticated]
     parser_classes = [JSONParser,MultiPartParser, FormParser]
 
@@ -140,3 +141,4 @@ class UserProfileView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data,status=status.HTTP_201_CREATED)
+ 
